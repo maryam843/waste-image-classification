@@ -16,6 +16,9 @@ One reason per choice. If a choice changes, the reason changes here too.
 - **Split: stratified 70/15/15 on unique hashes, seed 42.** Stratified so every split has the same class mix; on hashes so
   exact duplicates can never leak between train and test; 15 % validation is enough (297 images) for early stopping and
   model choice while keeping 298 test images.
+- **What may be committed.** Generated figure PNGs in `figures/` are allowed (they are outputs of the code, dpi 150, each
+  under 5 MB), even though the Grad-CAM and error figures show a few TrashNet photos (MIT licence, cited in the README).
+  Dataset images, zips and model files (`*.pt`, `*.pth`) are never committed; `.gitignore` blocks them.
 - **Split committed as a CSV of hashes.** Anyone can rebuild the identical split without me redistributing images, and the
   code refuses to run if the rebuilt split differs from the CSV.
 
@@ -58,8 +61,9 @@ One reason per choice. If a choice changes, the reason changes here too.
   and by a regression test.
 - **95 % Wilson interval for accuracy.** With about 300 test images the uncertainty is a few percentage points; Wilson is
   accurate for proportions near 0 or 1 where the normal approximation is not.
-- **Deterministic seeding (Python, NumPy, torch, DataLoader generator), cudnn deterministic.** Same seed gives the same
-  split and the same first-epoch loss on CPU (tested).
+- **Deterministic seeding (Python, NumPy, torch, DataLoader generator), cudnn deterministic.** Same split and same code
+  path on every run; the CPU first-epoch loss is reproducible for a given seed (tested, T8). GPU results are not claimed to
+  be bit-identical between runs, which is one more reason to report mean +/- sd over 3 seeds.
 
 ## Explainability and demo
 

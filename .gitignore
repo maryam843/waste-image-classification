@@ -1,4 +1,5 @@
-# data and model files are never committed
+# Dataset images, zips and model files are never committed.
+# Generated figure PNGs in figures/ ARE allowed (outputs of the code, not dataset files).
 data/
 *.zip
 *.pth

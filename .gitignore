@@ -1,0 +1,33 @@
+# data and model files are never committed
+data/
+*.zip
+*.pth
+*.pt
+*.ckpt
+checkpoints/
+exports/
+runs/
+hf_space/*.pt
+hf_space/*.pth
+hf_space_build/
+
+# python / tooling
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+coverage.xml
+htmlcov/
+.ipynb_checkpoints/
+build/
+dist/
+
+# secrets
+.env
+kaggle.json
+*.token

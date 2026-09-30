@@ -1,0 +1,9 @@
+# Runtime, pinned. Python 3.12.
+# On Linux without a GPU, install the CPU wheels first to avoid the large CUDA build:
+#   pip install torch==2.14.0 torchvision==0.29.0 --index-url https://download.pytorch.org/whl/cpu
+torch==2.14.0
+torchvision==0.29.0
+numpy==2.5.3
+scikit-learn==1.9.1
+pillow==12.3.0
+matplotlib==3.11.2

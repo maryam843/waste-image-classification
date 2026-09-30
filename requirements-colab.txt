@@ -1,0 +1,3 @@
+# Colab already ships torch, torchvision, numpy, scikit-learn, pillow and matplotlib.
+# The notebook installs this package with --no-deps and records the actual versions in results.json.
+# Nothing extra is needed; this file exists so the Colab setup is explicit.

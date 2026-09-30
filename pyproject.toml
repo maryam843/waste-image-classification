@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "waste-cls"
+version = "1.0.0"
+description = "DNN vs CNN vs transfer learning on TrashNet (glass, metal, paper, plastic), with Grad-CAM"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+authors = [{ name = "Maryam Mahaboob" }]
+dependencies = [
+    "torch>=2.4",
+    "torchvision>=0.19",
+    "numpy>=1.26",
+    "scikit-learn>=1.4",
+    "pillow>=10",
+    "matplotlib>=3.8",
+]
+
+[project.scripts]
+waste-cls = "waste_cls.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-include = ["*.ipynb"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"notebooks/original_2025_dnn.ipynb" = ["ALL"]
+"notebooks/*.ipynb" = ["E402"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = ["slow: slower integration tests (notebook execution, CLI subprocesses)"]
+
+[tool.coverage.run]
+source = ["src/waste_cls"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+
+[tool.ruff.lint.isort]
+known-first-party = ["waste_cls", "check_readme_claims", "pii_scan", "prepare_hf_space", "conftest"]

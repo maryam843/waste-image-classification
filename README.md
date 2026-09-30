@@ -1,6 +1,6 @@
 # Waste image classification: why a CNN beats a plain DNN on images
 
-A fair, reproducible comparison of my 2025 fully connected network against a small CNN and a frozen ResNet-18
+A fair, re-runnable comparison of my 2025 fully connected network against a small CNN and a frozen ResNet-18
 on public TrashNet photos of glass, metal, paper and plastic, with Grad-CAM explanations and a small demo app.
 
 Originally built for DSAI4101 Deep Learning, UDST, Fall 2025. Rebuilt on public data in 2026.
@@ -34,7 +34,7 @@ datasets, how much does the model type matter, when everything is evaluated fair
 | Models | Fully connected DNN [512,256,128] | Same DNN, plus SmallCNN and frozen ResNet-18, plus 2 baselines |
 | Model selection | On the test set | On a validation set; test used once per trained model |
 | Seeds | One run | 3 seeds per model, mean +/- sd, 95 % Wilson intervals |
-| Reproducible | No (cells ran out of order, data missing) | Yes: pinned data hash, committed split, tests and CI |
+| Reproducible | No (cells ran out of order, data missing) | Same split and same code path on every run; CPU first-epoch loss is reproducible (tested). GPU runs can differ slightly, so I report mean +/- sd over seeds |
 | Explainability | Misclassified images | Grad-CAM for SmallCNN and ResNet-18 |
 
 The original notebook is kept as submitted (personal data removed) in
@@ -53,6 +53,10 @@ but that number was selected on the same test set, so it is optimistic.
   train and test: 1,386 train, 297 validation, 298 test. The split is saved as a CSV of hashes (no images) in
   [`data_split/trashnet_split.csv`](data_split/trashnet_split.csv).
 - **Not comparable with 2025:** the course data is no longer available, so 2025 and 2026 scores are not directly comparable.
+- **Images in figures:** some generated figures (Grad-CAM and the misclassified-image gallery) show a few TrashNet test
+  photos. They are used under TrashNet's MIT licence with the citation its README asks for: Gary Thung and Mindy Yang,
+  "Classification of Trash for Recyclability Status", Stanford CS 229, 2016, https://github.com/garythung/trashnet.
+  The dataset itself is not in this repo.
 
 ## Method
 
@@ -89,8 +93,8 @@ sampled across all four classes, Grad-CAM, and a results bar chart, all in [`fig
 ## What went wrong in 2025 and how I fixed it
 
 1. **I picked the model using the test set.** Early stopping, the learning-rate schedule, the saved checkpoint and my
-   hyperparameter search all looked at the 100 test images. Fix: a separate validation split; `train_model()` does not even
-   accept a test loader, and a test checks that the test set is used exactly once per model.
+   hyperparameter search all looked at the 100 test images. Fix: model selection uses only the validation set, and a test
+   enforces it (`train_model()` does not accept a test loader, and a test checks the test set is used once per model).
 2. **My notebook cells ran out of order.** The "60-epoch experiment" actually continued training the already trained model.
    Fix: every run builds a fresh model from a factory, and CI runs the new notebook top to bottom.
 3. **My write-up named the wrong final model.** I wrote [1024,512,256,128], but the reported model was [512,256,128].
@@ -112,7 +116,7 @@ sampled across all four classes, Grad-CAM, and a results bar chart, all in [`fig
 ## What I learned
 
 - A good-looking number means little if the test set helped choose the model. I now keep a validation set for every decision.
-- Notebooks hide state. Moving the logic into `src/` with tests made out-of-order runs impossible.
+- Notebooks hide state. Moving the logic into `src/` means every run starts from a fresh model, and a test checks it.
 - For images, architecture matters more than tuning: my 2025 hyperparameter search could not fix a model that ignores pixel layout.
 - Reporting mean and spread over seeds, plus a confidence interval, stops me from reading noise as progress.
 - Checking data is part of the model: hashing TrashNet found duplicates with conflicting labels that I would have missed.

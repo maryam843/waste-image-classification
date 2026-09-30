@@ -130,7 +130,7 @@ def gradcam_grid(models: dict[str, torch.nn.Module], images: torch.Tensor, y_tru
     """Row 1: images. One row of Grad-CAM overlays per model."""
     tf = eval_transform()
     rows = 1 + len(models)
-    fig, axes = plt.subplots(rows, len(indices), figsize=(2.0 * len(indices), 2.2 * rows), squeeze=False)
+    fig, axes = plt.subplots(rows, len(indices), figsize=(2.0 * len(indices), 2.6 * rows), squeeze=False)
     for j, i in enumerate(indices):
         img = images[i].permute(1, 2, 0).numpy()
         axes[0, j].imshow(img)

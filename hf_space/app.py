@@ -48,8 +48,11 @@ def predict(image, model, blob) -> tuple[dict[str, float], np.ndarray]:
 def build_demo(model, blob):
     import gradio as gr
 
+    def classify(image):
+        return predict(image, model, blob)
+
     return gr.Interface(
-        fn=lambda img: predict(img, model, blob),
+        fn=classify,
         inputs=gr.Image(type="pil", label="Photo of one item"),
         outputs=[gr.Label(num_top_classes=3, label="Top-3 classes"),
                  gr.Image(label="Grad-CAM (red = regions that drove the prediction)")],

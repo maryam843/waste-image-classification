@@ -115,8 +115,10 @@ Other figures in [`figures/`](figures/): learning curves (`learning_curves.png`)
 
 ![Grad-CAM on six test images](figures/gradcam.png)
 
-**Live demo:** TODO, Hugging Face Space link after I upload it. The demo model is the ResNet-18 from seed 0, picked by the
-highest validation macro F1 among the Grad-CAM capable models (recorded under `demo_model` in `results.json`) (steps in [`hf_space/INSTRUCTIONS.md`](hf_space/INSTRUCTIONS.md)).
+**Live demo:** [Hugging Face Space](https://huggingface.co/spaces/Maryamdafc/waste-image-classification) (Gradio on free
+ZeroGPU). The demo model is the ResNet-18 from seed 0, picked by the highest validation macro F1 among the Grad-CAM capable
+models (recorded under `demo_model` in `results.json`). Setup steps are in [`hf_space/INSTRUCTIONS.md`](hf_space/INSTRUCTIONS.md).
+It is a course project trained on studio photos, not for real sorting decisions.
 
 **Demo video:** TODO, I will record a short clip of the app myself.
 

@@ -37,6 +37,8 @@ jobs:
           python -m pip install -e . --no-deps
       - name: Ruff (T9)
         run: ruff check .
+      - name: Space files stay Python 3.10 compatible (Hugging Face ZeroGPU runs 3.10)
+        run: ruff check --target-version py310 --select E9,F hf_space/app.py src/waste_cls/models.py src/waste_cls/gradcam.py
       - name: PII and secret scan, full history (T12)
         run: python scripts/pii_scan.py
       - name: README claims (T11)

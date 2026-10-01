@@ -6,6 +6,17 @@ Not for real sorting decisions.
 
 from __future__ import annotations
 
+try:  # Hugging Face ZeroGPU (preinstalled on the Space); not installed locally or in CI
+    import spaces
+except ImportError:  # no-op stand-in so local runs and tests work without the package
+    import types
+
+    def _gpu(fn=None, **_kwargs):
+        """Accept both @spaces.GPU and @spaces.GPU(duration=...) and return the function unchanged."""
+        return fn if fn is not None else (lambda f: f)
+
+    spaces = types.SimpleNamespace(GPU=_gpu)
+
 from pathlib import Path
 
 import numpy as np
@@ -48,6 +59,7 @@ def predict(image, model, blob) -> tuple[dict[str, float], np.ndarray]:
 def build_demo(model, blob):
     import gradio as gr
 
+    @spaces.GPU  # required on free ZeroGPU Spaces; no-op locally
     def classify(image):
         return predict(image, model, blob)
 

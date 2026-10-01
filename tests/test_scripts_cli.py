@@ -292,3 +292,51 @@ def test_committed_readme_matches_committed_results():
     errors, msgs = CRC.check((root / "README.md").read_text(encoding="utf-8"), results)
     assert errors == 0, msgs
     assert not any("SKIPPED" in m for m in msgs)
+
+
+# ------------------------------------------------------------------ Hugging Face ZeroGPU handling
+
+
+def _load_app(module_name):
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(module_name, prepare_hf_space.ROOT / "hf_space" / "app.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_hf_spaces_fallback_is_noop(monkeypatch):
+    monkeypatch.setitem(sys.modules, "spaces", None)  # makes "import spaces" raise ImportError
+    app = _load_app("app_no_spaces")
+
+    def f(x):
+        return x
+
+    assert app.spaces.GPU(f) is f
+    assert app.spaces.GPU(duration=30)(f) is f
+
+
+def test_hf_classify_uses_spaces_gpu_when_available(monkeypatch, exported):
+    import types
+
+    from waste_cls.models import load_exported
+
+    wrapped = []
+
+    def gpu(fn=None, **_kw):
+        wrapped.append(fn.__name__)
+        return fn
+
+    monkeypatch.setitem(sys.modules, "spaces", types.SimpleNamespace(GPU=gpu))
+    app = _load_app("app_with_spaces")
+    model, blob = load_exported(exported[0])
+    pytest.importorskip("gradio")
+    app.build_demo(model, blob)
+    assert wrapped == ["classify"]
+
+
+def test_hf_space_requirements_match_the_live_space(root):
+    lines = (root / "hf_space" / "requirements.txt").read_text().split()
+    assert lines == ["torch==2.11.0", "torchvision==0.26.0", "numpy", "pillow"]
+    assert not any(line.startswith("gradio") for line in lines)  # the Space installs Gradio from sdk_version

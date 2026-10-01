@@ -14,7 +14,7 @@ My full transfer-learning work is in my [OryxEye](https://github.com/maryam843/O
 - **Who it helps:** recycling sorters and "smart bin" projects, where sorting by hand is slow and mistakes contaminate whole batches.
 - **How it works:** photo -> resized to 224x224 -> a neural network -> the most likely material, plus a heat map (Grad-CAM) of the part of the photo that decided it.
 - **2025 vs 2026:** in 2025 I trained one fully connected network for a course assignment. In 2026 I rebuilt it on public data, fixed how it was evaluated, and compared it with a CNN and a pretrained ResNet-18.
-- **Honest result:** TODO after the Colab run (numbers will come only from `results/results.json`). The 2025 and 2026 scores use different data and cannot be compared directly.
+- **Honest result:** on the same TrashNet test set, the frozen ResNet-18 scored highest, then the small CNN, then my 2025 DNN, and all three beat the two baselines (numbers below, from `results/results.json`). These are clean studio photos, not real bins. The 2025 and 2026 scores use different data and cannot be compared directly.
 - **Why it matters here:** Qatar's national waste strategy aims to raise recycling, and automated sorting is part of that. This project shows the core skills: building, evaluating and explaining an image model honestly.
 
 ## The problem
@@ -77,16 +77,46 @@ Design choices and the reasons for each are in [`docs/DECISIONS.md`](docs/DECISI
 ## Results vs baselines
 
 <!-- RESULTS:START -->
-TODO: filled in from `results/results.json` after I run `notebooks/waste_classification_2026.ipynb` on Colab.
-No numbers are shown until then.
+| Model | Test accuracy | Test macro F1 | 95 % Wilson CI for accuracy | Parameters (trainable) | Train time per run |
+|---|---|---|---|---|---|
+| Majority class | 0.299 | 0.115 | 0.250 to 0.353 | n/a | n/a |
+| Logistic regression, 64x64 pixels | 0.510 | 0.493 | 0.454 to 0.566 | n/a | n/a |
+| DNN [512,256,128] (2025 network) | 0.664 +/- 0.012 | 0.650 +/- 0.012 | 0.595 to 0.725 (widest over seeds) | 77,237,380 (77,237,380) | 81 s |
+| SmallCNN (from scratch) | 0.780 +/- 0.005 | 0.775 +/- 0.005 | 0.724 to 0.828 (widest over seeds) | 389,924 (389,924) | 243 s |
+| ResNet-18, frozen backbone (reference) | 0.843 +/- 0.007 | 0.841 +/- 0.007 | 0.789 to 0.885 (widest over seeds) | 11,178,564 (2,052) | 139 s |
+
+Test set: 298 images. Networks: mean +/- sd over seeds 0, 1, 2. GPU: Tesla T4. Split hash: `479be6bb4d52`.
+
+Run environment (recorded in results.json): Python 3.13.15, torch 2.11.0+cu128, torchvision 0.26.0+cu128.
 <!-- RESULTS:END -->
 
-Figures (created by the notebook, TODO until the Colab run): learning curves, confusion matrices, misclassified test images
-sampled across all four classes, Grad-CAM, and a results bar chart, all in [`figures/`](figures/).
+All numbers come from one full run of `notebooks/waste_classification_2026.ipynb` on a Colab T4 GPU. The executed copy,
+with text outputs kept and Colab metadata removed, is
+[`notebooks/waste_classification_2026_executed.ipynb`](notebooks/waste_classification_2026_executed.ipynb).
+Colab used its own preinstalled Python and PyTorch (versions above), not the pinned versions that CI tests on.
 
-**Grad-CAM:** TODO, `figures/gradcam.png` appears here after the Colab run.
+How I read it:
 
-**Live demo:** TODO, Hugging Face Space link after I upload it (steps in [`hf_space/INSTRUCTIONS.md`](hf_space/INSTRUCTIONS.md)).
+- The order was the same on every seed: my 2025 DNN lowest, then the SmallCNN, then the frozen ResNet-18.
+  The SmallCNN has about 200 times fewer parameters than the DNN and still scored higher.
+- All three seeds use the same 298 test images, so the seeds show training noise, not test-set noise. The per-seed Wilson
+  intervals of neighbouring models touch or overlap slightly, so the gaps are clear but not huge.
+- The SmallCNN's best validation epoch was near the 40-epoch limit for all seeds (see the learning curves), so it was
+  probably still improving. A longer run might score higher; I report what was run.
+- The ResNet-18 trains only 2,052 parameters (the new head). Its lead shows how much ImageNet features help on a small
+  dataset; it is a reference, not my own architecture.
+
+![Test accuracy and macro F1 per model](figures/results_bar.png)
+
+Other figures in [`figures/`](figures/): learning curves (`learning_curves.png`), confusion matrices
+(`confusion_matrices.png`), and misclassified test images sampled across all four classes for each model (`errors_*.png`).
+
+**Grad-CAM:** where the SmallCNN and the ResNet-18 looked on six test photos (red raised the predicted class score).
+
+![Grad-CAM on six test images](figures/gradcam.png)
+
+**Live demo:** TODO, Hugging Face Space link after I upload it. The demo model is the ResNet-18 from seed 0, picked by the
+highest validation macro F1 among the Grad-CAM capable models (recorded under `demo_model` in `results.json`) (steps in [`hf_space/INSTRUCTIONS.md`](hf_space/INSTRUCTIONS.md)).
 
 **Demo video:** TODO, I will record a short clip of the app myself.
 

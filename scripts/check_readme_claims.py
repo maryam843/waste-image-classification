@@ -64,9 +64,14 @@ def render_table(results: dict) -> str:
     n_test = results["baselines"]["majority"]["n"]
     seeds = results["config"]["seeds"]
     lines.append("")
+    env = results["environment"]
     lines.append(f"Test set: {n_test} images. Networks: mean +/- sd over seeds {', '.join(map(str, seeds))}. "
-                 f"GPU: {results['environment'].get('gpu_name') or 'none'}. "
+                 f"GPU: {env.get('gpu_name') or 'none'}. "
                  f"Split hash: `{results['data']['split_csv_sha256'][:12]}`.")
+    if env.get("torch"):
+        lines.append("")
+        lines.append(f"Run environment (recorded in results.json): Python {env.get('python', '?')}, "
+                     f"torch {env['torch']}, torchvision {env.get('torchvision', '?')}.")
     return "\n".join(lines)
 
 

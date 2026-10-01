@@ -62,8 +62,8 @@ One reason per choice. If a choice changes, the reason changes here too.
 - **95 % Wilson interval for accuracy.** With about 300 test images the uncertainty is a few percentage points; Wilson is
   accurate for proportions near 0 or 1 where the normal approximation is not.
 - **Deterministic seeding (Python, NumPy, torch, DataLoader generator), cudnn deterministic.** Same split and same code
-  path on every run; the CPU first-epoch loss is reproducible for a given seed (tested, T8). GPU results are not claimed to
-  be bit-identical between runs, which is one more reason to report mean +/- sd over 3 seeds.
+  path on every run; the CPU first-epoch loss is reproducible for a given seed (tested, T8). GPU runs can differ slightly
+  between runs, which is one more reason to report mean +/- sd over 3 seeds.
 
 ## Explainability and demo
 

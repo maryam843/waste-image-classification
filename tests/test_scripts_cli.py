@@ -273,3 +273,22 @@ def test_hf_space_build_runs_standalone(exported, tmp_path):
 def test_torch_load_is_weights_only(exported):
     blob = torch.load(exported[0], weights_only=True)
     assert blob["arch"] == "smallcnn"
+
+
+def test_committed_readme_matches_committed_results():
+    """T11 on the real files: once results/results.json exists, the README must match it (no skip)."""
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    results_path = root / "results" / "results.json"
+    if not results_path.exists():
+        pytest.skip("results/results.json not committed yet")
+    results = json.loads(results_path.read_text(encoding="utf-8"))
+    assert results["status"] == "full"
+    assert sorted((r["model"], r["seed"]) for r in results["runs"]) == sorted(
+        (m, s) for m in results["config"]["models"] for s in results["config"]["seeds"]
+    )
+    assert set(results["baselines"]) == {"majority", "logreg_pixels"}
+    errors, msgs = CRC.check((root / "README.md").read_text(encoding="utf-8"), results)
+    assert errors == 0, msgs
+    assert not any("SKIPPED" in m for m in msgs)

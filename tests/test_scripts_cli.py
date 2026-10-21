@@ -354,6 +354,49 @@ def test_hf_classify_turns_bad_input_into_gradio_error(monkeypatch, exported):
     assert len(probs) == 3
 
 
+
+def test_hf_upload_accepts_only_jpeg_and_png_up_to_10_mb(tmp_path):
+    app = _load_app("app_upload_limits")
+    img = Image.new("RGB", (8, 8), (10, 20, 30))
+    for fmt, name in (("PNG", "a.png"), ("JPEG", "a.jpg")):
+        img.save(tmp_path / name, fmt)
+        opened = app.open_upload(str(tmp_path / name))
+        assert opened.format == fmt and opened.size == (8, 8)
+    img.save(tmp_path / "a.gif", "GIF")
+    img.save(tmp_path / "disguised.png", "GIF")
+    (tmp_path / "notes.txt").write_text("not an image")
+    for name in ("a.gif", "disguised.png", "notes.txt"):
+        with pytest.raises(ValueError, match="only JPEG and PNG"):
+            app.open_upload(tmp_path / name)
+    big = tmp_path / "big.png"
+    with open(big, "wb") as fh:
+        fh.write(app.SIGNATURES["PNG"])
+        fh.truncate(app.MAX_UPLOAD_BYTES + 1)
+    with pytest.raises(ValueError, match="limit is 10 MB"):
+        app.open_upload(big)
+
+
+def test_hf_classify_rejects_bad_files_with_gradio_error(monkeypatch, exported, tmp_path):
+    import types
+
+    from waste_cls.models import load_exported
+
+    gr = pytest.importorskip("gradio")
+    wrapped = []
+    monkeypatch.setitem(sys.modules, "spaces", types.SimpleNamespace(GPU=lambda fn: wrapped.append(fn) or fn))
+    app = _load_app("app_bad_files")
+    model, blob = load_exported(exported[0])
+    demo = app.build_demo(model, blob)
+    image_input = demo.input_components[0]
+    assert image_input.type == "filepath" and image_input.image_mode is None and image_input.sources == ["upload"]
+    Image.new("RGB", (8, 8)).save(tmp_path / "x.gif", "GIF")
+    (tmp_path / "broken.png").write_bytes(app.SIGNATURES["PNG"] + b"broken")
+    for name in ("x.gif", "broken.png"):
+        with pytest.raises(gr.Error):
+            wrapped[0](str(tmp_path / name))
+    probs, _ = wrapped[0](str(exported[1]))
+    assert len(probs) == 3
+
 def test_hf_space_requirements_match_the_live_space(root):
     text = (root / "hf_space" / "requirements.txt").read_text()
     lines = [line for line in text.splitlines() if line and not line.startswith("#")]

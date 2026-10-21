@@ -31,6 +31,9 @@ except ImportError:  # inside the Hugging Face Space (files copied next to app.p
     from models import load_exported
 
 MODEL_PATH = Path(__file__).with_name("model.pt")
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+# Only these two decoders are used: the file's first bytes must match one of them.
+SIGNATURES = {"JPEG": b"\xff\xd8\xff", "PNG": b"\x89PNG\r\n\x1a\n"}
 MEAN = (0.485, 0.456, 0.406)
 STD = (0.229, 0.224, 0.225)
 NOTE = ("Course project (DSAI4101, rebuilt in 2026) trained on TrashNet studio photos of glass, metal, "
@@ -45,9 +48,26 @@ def to_input(image: Image.Image, size: int) -> tuple[np.ndarray, torch.Tensor]:
     return rgb, x.unsqueeze(0)
 
 
+def open_upload(path: str | Path) -> Image.Image:
+    """Open an uploaded file only if it is a JPEG or PNG of at most 10 MB, checked before decoding."""
+    path = Path(path)
+    size = path.stat().st_size
+    if size > MAX_UPLOAD_BYTES:
+        raise ValueError(f"the file is {size / 2**20:.1f} MB; the limit is 10 MB")
+    with open(path, "rb") as fh:
+        head = fh.read(8)
+    if not any(head.startswith(sig) for sig in SIGNATURES.values()):
+        raise ValueError("only JPEG and PNG photos are accepted")
+    image = Image.open(path, formats=list(SIGNATURES))
+    image.load()
+    return image
+
+
 def predict(image, model, blob) -> tuple[dict[str, float], np.ndarray]:
     if image is None:
         raise ValueError("please upload an image")
+    if isinstance(image, (str, Path)):
+        image = open_upload(image)
     if isinstance(image, np.ndarray):
         image = Image.fromarray(image)
     rgb, x = to_input(image, blob["image_size"])
@@ -65,10 +85,13 @@ def build_demo(model, blob):
             return predict(image, model, blob)
         except ValueError as err:  # show a message in the app instead of a generic error
             raise gr.Error(str(err)) from err
+        except OSError as err:  # damaged or unreadable image file
+            raise gr.Error("the image could not be read; please upload a JPEG or PNG photo") from err
 
     return gr.Interface(
         fn=classify,
-        inputs=gr.Image(type="pil", label="Photo of one item"),
+        # filepath + image_mode=None: Gradio passes the raw file on, and open_upload() checks it before decoding
+        inputs=gr.Image(type="filepath", image_mode=None, sources=["upload"], label="Photo of one item (JPEG or PNG)"),
         outputs=[gr.Label(num_top_classes=3, label="Top-3 classes"),
                  gr.Image(label="Grad-CAM (red = regions that drove the prediction)")],
         title="Waste material classifier (course project)",
@@ -79,4 +102,4 @@ def build_demo(model, blob):
 
 if __name__ == "__main__":
     loaded_model, loaded_blob = load_exported(MODEL_PATH)
-    build_demo(loaded_model, loaded_blob).launch()
+    build_demo(loaded_model, loaded_blob).launch(max_file_size="10mb")

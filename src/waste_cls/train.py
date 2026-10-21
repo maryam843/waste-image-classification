@@ -7,7 +7,6 @@ early stopping, LR scheduling and checkpoint choice, which made the reported sco
 from __future__ import annotations
 
 import copy
-import os
 import random
 import time
 from dataclasses import dataclass, field
@@ -27,7 +26,6 @@ def seed_everything(seed: int, deterministic: bool = True) -> None:
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-    os.environ["PYTHONHASHSEED"] = str(seed)
     if deterministic:
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False

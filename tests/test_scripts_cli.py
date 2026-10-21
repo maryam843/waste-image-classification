@@ -379,3 +379,12 @@ def test_mcnemar_on_committed_results(root, capsys):
 
 def test_mcnemar_missing_file(tmp_path):
     assert mcnemar.main(["--results", str(tmp_path / "none.json")]) == 1
+
+
+def test_results_environment_file_matches_results_json(root):
+    res = json.loads((root / "results" / "results.json").read_text())
+    text = (root / "results" / "results-environment.txt").read_text()
+    pairs = dict(line.split(": ", 1) for line in text.splitlines() if line and not line.startswith("#"))
+    expected = {"created_utc": res["created_utc"], "config": res["config"]["name"]}
+    expected.update({k: str(v) for k, v in res["environment"].items()})
+    assert pairs == expected

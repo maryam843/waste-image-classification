@@ -1,0 +1,12 @@
+# Environment of the run that produced results/results.json, copied from its "environment" field.
+# This is the Colab stack the run used, not the pinned versions in requirements.txt that CI tests on.
+created_utc: 2026-09-30T19:30:28Z
+config: full
+python: 3.13.15
+platform: Linux-6.6.122+-x86_64-with-glibc2.39
+torch: 2.11.0+cu128
+torchvision: 0.26.0+cu128
+numpy: 2.1.3
+scikit_learn: 1.6.1
+device: cuda
+gpu_name: Tesla T4

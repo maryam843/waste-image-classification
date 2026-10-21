@@ -355,8 +355,9 @@ def test_hf_classify_turns_bad_input_into_gradio_error(monkeypatch, exported):
 
 
 def test_hf_space_requirements_match_the_live_space(root):
-    lines = (root / "hf_space" / "requirements.txt").read_text().split()
-    assert lines == ["torch==2.11.0", "torchvision==0.26.0", "numpy", "pillow"]
+    text = (root / "hf_space" / "requirements.txt").read_text()
+    lines = [line for line in text.splitlines() if line and not line.startswith("#")]
+    assert lines == ["torch==2.11.0", "torchvision==0.26.0", "numpy==2.2.6", "pillow==12.3.0"]
     assert not any(line.startswith("gradio") for line in lines)  # the Space installs Gradio from sdk_version
 
 

@@ -1,4 +1,6 @@
+# Pinned to match the live ZeroGPU Space (Python 3.10). torch 2.11.0 is what ZeroGPU needs; it has
+# CVE-2025-3000 in torch.jit.script, which this app does not use.
 torch==2.11.0
 torchvision==0.26.0
-numpy
-pillow
+numpy==2.2.6
+pillow==12.3.0

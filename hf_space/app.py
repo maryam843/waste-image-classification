@@ -61,7 +61,10 @@ def build_demo(model, blob):
 
     @spaces.GPU  # required on free ZeroGPU Spaces; no-op locally
     def classify(image):
-        return predict(image, model, blob)
+        try:
+            return predict(image, model, blob)
+        except ValueError as err:  # show a message in the app instead of a generic error
+            raise gr.Error(str(err)) from err
 
     return gr.Interface(
         fn=classify,

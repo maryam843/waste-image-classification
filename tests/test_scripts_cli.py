@@ -326,7 +326,7 @@ def test_hf_classify_uses_spaces_gpu_when_available(monkeypatch, exported):
     wrapped = []
 
     def gpu(fn=None, **_kw):
-        wrapped.append(fn.__name__)
+        wrapped.append(fn)
         return fn
 
     monkeypatch.setitem(sys.modules, "spaces", types.SimpleNamespace(GPU=gpu))
@@ -334,7 +334,24 @@ def test_hf_classify_uses_spaces_gpu_when_available(monkeypatch, exported):
     model, blob = load_exported(exported[0])
     pytest.importorskip("gradio")
     app.build_demo(model, blob)
-    assert wrapped == ["classify"]
+    assert [f.__name__ for f in wrapped] == ["classify"]
+
+
+def test_hf_classify_turns_bad_input_into_gradio_error(monkeypatch, exported):
+    import types
+
+    from waste_cls.models import load_exported
+
+    gr = pytest.importorskip("gradio")
+    wrapped = []
+    monkeypatch.setitem(sys.modules, "spaces", types.SimpleNamespace(GPU=lambda fn: wrapped.append(fn) or fn))
+    app = _load_app("app_bad_input")
+    model, blob = load_exported(exported[0])
+    app.build_demo(model, blob)
+    with pytest.raises(gr.Error):
+        wrapped[0](None)
+    probs, _ = wrapped[0](Image.open(exported[1]))
+    assert len(probs) == 3
 
 
 def test_hf_space_requirements_match_the_live_space(root):

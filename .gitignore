@@ -5,6 +5,13 @@ data/
 *.pth
 *.pt
 *.ckpt
+*.safetensors
+*.onnx
+*.pkl
+*.joblib
+*.h5
+*.npz
+*.part
 checkpoints/
 exports/
 runs/
@@ -30,5 +37,12 @@ dist/
 
 # secrets
 .env
+.env.*
 kaggle.json
 *.token
+
+# editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

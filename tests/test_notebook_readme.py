@@ -26,6 +26,11 @@ def test_2026_notebook_executes_headless_smoke(root, monkeypatch):
     assert (root / "runs" / "smoke" / "hf_space_build" / "model.pt").exists()
 
 
+def test_notebooks_pass_nbformat_validation(root):
+    for name in ("waste_classification_2026.ipynb", "waste_classification_2026_executed.ipynb"):
+        nbformat.validate(nbformat.read(root / "notebooks" / name, as_version=4))
+
+
 def test_notebook_is_clean(root):
     nb = json.loads((root / "notebooks" / "waste_classification_2026.ipynb").read_text())
     assert "colab" not in nb["metadata"]

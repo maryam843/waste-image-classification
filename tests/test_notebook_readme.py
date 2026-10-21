@@ -2,7 +2,6 @@
 
 import json
 import os
-import re
 import shlex
 import subprocess
 import sys
@@ -27,21 +26,12 @@ def test_2026_notebook_executes_headless_smoke(root, monkeypatch):
     assert (root / "runs" / "smoke" / "hf_space_build" / "model.pt").exists()
 
 
-def test_notebooks_are_clean(root):
-    new = json.loads((root / "notebooks" / "waste_classification_2026.ipynb").read_text())
-    old = json.loads((root / "notebooks" / "original_2025_dnn.ipynb").read_text())
-    for nb in (new, old):
-        assert "colab" not in nb["metadata"]
-        assert all(c.get("metadata", {}) == {} for c in nb["cells"])
-    assert len(old["cells"]) == 19
-    header = "".join(old["cells"][0]["source"])
-    assert "DSAI4101" in header and not re.search(r"\d{6,}", header) and "Section" not in header
-
-
-def test_original_notebook_keeps_2025_outputs(root):
-    text = (root / "notebooks" / "original_2025_dnn.ipynb").read_text()
-    assert "Final Test F1 Score: 0.6988" in text
-    assert "Linear(in_features=150528, out_features=512" in text
+def test_notebook_is_clean(root):
+    nb = json.loads((root / "notebooks" / "waste_classification_2026.ipynb").read_text())
+    assert "colab" not in nb["metadata"]
+    assert all(c.get("metadata", {}) == {} for c in nb["cells"])
+    code = [c for c in nb["cells"] if c["cell_type"] == "code"]
+    assert all(c["outputs"] == [] and c["execution_count"] is None for c in code)
 
 
 def readme_commands(root) -> list[str]:

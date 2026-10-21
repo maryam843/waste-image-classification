@@ -12,7 +12,7 @@ from waste_cls.models import build_model
 from waste_cls.train import make_loader, run_epoch, seed_everything, train_model
 
 
-def test_wilson_ci_matches_audit_value_for_70_of_100():
+def test_wilson_ci_matches_known_value_for_70_of_100():
     lo, hi = wilson_ci(70, 100)
     assert round(lo, 3) == 0.604 and round(hi, 3) == 0.781
 

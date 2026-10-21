@@ -276,7 +276,7 @@ def test_torch_load_is_weights_only(exported):
 
 
 def test_committed_readme_matches_committed_results():
-    """T11 on the real files: once results/results.json exists, the README must match it (no skip)."""
+    """README check on the real files: once results/results.json exists, the README must match it (no skip)."""
     from pathlib import Path
 
     root = Path(__file__).resolve().parents[1]

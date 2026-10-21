@@ -1,4 +1,4 @@
-"""T13: the 2026 notebook runs headless (smoke config). T5: the README commands run. Notebook hygiene."""
+"""The 2026 notebook runs headless (smoke config), the README commands run, and the notebook is clean."""
 
 import json
 import os
@@ -48,7 +48,7 @@ def test_readme_has_expected_commands(root):
 
 @pytest.mark.slow
 def test_readme_python_commands_run(root):
-    """Runs every README command that does not create environments or install packages (those run in T6)."""
+    """Runs every README command that does not create environments or install packages (CI runs those steps itself)."""
     ran = 0
     for cmd in readme_commands(root):
         if cmd.startswith(("python -m venv", "source", "pip ", "pytest")):

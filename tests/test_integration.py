@@ -1,4 +1,4 @@
-"""T4 integration, overfit sanity check and T8 reproducibility, all on CPU with tiny synthetic images."""
+"""Integration, overfit sanity check and reproducibility, all on CPU with tiny synthetic images."""
 
 import json
 

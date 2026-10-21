@@ -1,4 +1,4 @@
-"""Tests for the CLI, the helper scripts (README claims, PII scan, HF Space build) and the demo app."""
+"""Tests for the CLI, the helper scripts (README claims, PII scan, McNemar, HF Space build) and the demo app."""
 
 import copy
 import json
@@ -11,6 +11,7 @@ import torch
 from PIL import Image
 
 import check_readme_claims as CRC
+import mcnemar
 import pii_scan
 import prepare_hf_space
 from waste_cls import cli
@@ -340,3 +341,41 @@ def test_hf_space_requirements_match_the_live_space(root):
     lines = (root / "hf_space" / "requirements.txt").read_text().split()
     assert lines == ["torch==2.11.0", "torchvision==0.26.0", "numpy", "pillow"]
     assert not any(line.startswith("gradio") for line in lines)  # the Space installs Gradio from sdk_version
+
+
+# ------------------------------------------------------------------ McNemar
+
+
+def test_exact_mcnemar_known_values():
+    assert mcnemar.exact_mcnemar(0, 0) == 1.0
+    assert mcnemar.exact_mcnemar(3, 3) == 1.0
+    assert mcnemar.exact_mcnemar(0, 5) == pytest.approx(2 * 0.5**5)
+    assert mcnemar.exact_mcnemar(1, 9) == pytest.approx(2 * 11 / 1024)
+    assert mcnemar.exact_mcnemar(2, 10) == mcnemar.exact_mcnemar(10, 2)
+
+
+def test_mcnemar_discordant_counts():
+    assert mcnemar.discordant([0, 1, 2, 3], [0, 1, 0, 0], [0, 0, 2, 0]) == (1, 1)
+    with pytest.raises(ValueError):
+        mcnemar.discordant([0, 1], [0], [0, 1])
+
+
+def test_mcnemar_rejects_different_test_sets():
+    runs = [{"model": "dnn", "seed": 0, "test": {"y_true": [0, 1], "y_pred": [0, 1]}},
+            {"model": "smallcnn", "seed": 0, "test": {"y_true": [1, 0], "y_pred": [1, 0]}}]
+    with pytest.raises(ValueError):
+        mcnemar.paired_rows({"runs": runs})
+
+
+def test_mcnemar_on_committed_results(root, capsys):
+    rows = mcnemar.paired_rows(json.loads((root / "results" / "results.json").read_text()))
+    p = {(r["first"], r["seed"]): r["p_value"] for r in rows}
+    assert [round(p[("dnn", s)], 4) for s in (0, 1, 2)] == [0.0018, 0.0, 0.0004]
+    assert p[("dnn", 1)] < 0.0001
+    assert [round(p[("smallcnn", s)], 3) for s in (0, 1, 2)] == [0.054, 0.044, 0.022]
+    assert mcnemar.main(["--results", str(root / "results" / "results.json")]) == 0
+    assert "dnn vs smallcnn" in capsys.readouterr().out
+
+
+def test_mcnemar_missing_file(tmp_path):
+    assert mcnemar.main(["--results", str(tmp_path / "none.json")]) == 1

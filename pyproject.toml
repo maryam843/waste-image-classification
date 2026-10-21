@@ -50,4 +50,4 @@ show_missing = true
 skip_covered = false
 
 [tool.ruff.lint.isort]
-known-first-party = ["waste_cls", "check_readme_claims", "pii_scan", "prepare_hf_space", "conftest"]
+known-first-party = ["waste_cls", "check_readme_claims", "mcnemar", "pii_scan", "prepare_hf_space", "conftest"]

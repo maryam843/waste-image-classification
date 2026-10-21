@@ -35,15 +35,15 @@ jobs:
         run: |
           python -m pip install -r requirements-dev.txt
           python -m pip install -e . --no-deps
-      - name: Ruff (T9)
+      - name: Lint (ruff)
         run: ruff check .
       - name: Space files stay Python 3.10 compatible (Hugging Face ZeroGPU runs 3.10)
         run: ruff check --target-version py310 --select E9,F hf_space/app.py src/waste_cls/models.py src/waste_cls/gradcam.py
-      - name: PII and secret scan, full history (T12)
+      - name: Personal data and secret scan, full history
         run: python scripts/pii_scan.py
-      - name: README claims (T11)
+      - name: Check README numbers against results.json
         run: python scripts/check_readme_claims.py
-      - name: Tests with coverage (T1-T5, T8, T10, T13)
+      - name: Tests with coverage
         run: python -m pytest --cov --cov-report=term-missing --cov-fail-under=85
-      - name: Smoke run from the README (T5)
+      - name: Smoke run from the README
         run: python -m waste_cls.cli run --config smoke --out runs/smoke

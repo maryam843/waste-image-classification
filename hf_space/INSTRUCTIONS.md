@@ -19,7 +19,7 @@ Live Space: https://huggingface.co/spaces/Maryamdafc/waste-image-classification 
 
 ## Steps
 
-1. Run `notebooks/waste_classification_2026.ipynb` on Colab (full config). The last cells write
+1. Run `notebooks/waste_classification.ipynb` on Colab (full config). The last cells write
    `exports/demo_model.pt` and build the folder `hf_space_build/` with:
    `app.py`, `requirements.txt`, `README.md`, `models.py`, `gradcam.py`, `model.pt`.
    Download that folder (the notebook zips it as `hf_space_build.zip`).

@@ -1,4 +1,4 @@
-"""The 2026 notebook runs headless (smoke config), the README commands run, and the notebook is clean."""
+"""The notebook runs headless (smoke config), the README commands run, and the notebook is clean."""
 
 import json
 import os
@@ -11,12 +11,12 @@ import pytest
 
 
 @pytest.mark.slow
-def test_2026_notebook_executes_headless_smoke(root, monkeypatch):
+def test_notebook_executes_headless_smoke(root, monkeypatch):
     from nbclient import NotebookClient
 
     monkeypatch.setenv("WASTE_CONFIG", "smoke")
     monkeypatch.setenv("MPLBACKEND", "Agg")
-    nb = nbformat.read(root / "notebooks" / "waste_classification_2026.ipynb", as_version=4)
+    nb = nbformat.read(root / "notebooks" / "waste_classification.ipynb", as_version=4)
     NotebookClient(nb, timeout=600, kernel_name="python3",
                    resources={"metadata": {"path": str(root / "notebooks")}}).execute()
     errors = [o for c in nb.cells if c.cell_type == "code" for o in c.get("outputs", []) if o.output_type == "error"]
@@ -27,12 +27,12 @@ def test_2026_notebook_executes_headless_smoke(root, monkeypatch):
 
 
 def test_notebooks_pass_nbformat_validation(root):
-    for name in ("waste_classification_2026.ipynb", "waste_classification_2026_executed.ipynb"):
+    for name in ("waste_classification.ipynb", "waste_classification_executed.ipynb"):
         nbformat.validate(nbformat.read(root / "notebooks" / name, as_version=4))
 
 
 def test_notebook_is_clean(root):
-    nb = json.loads((root / "notebooks" / "waste_classification_2026.ipynb").read_text())
+    nb = json.loads((root / "notebooks" / "waste_classification.ipynb").read_text())
     assert "colab" not in nb["metadata"]
     assert all(c.get("metadata", {}) == {} for c in nb["cells"])
     code = [c for c in nb["cells"] if c["cell_type"] == "code"]

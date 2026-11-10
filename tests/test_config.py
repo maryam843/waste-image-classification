@@ -3,7 +3,7 @@ import pytest
 from waste_cls.config import CLASSES, FULL, SMOKE, get_config
 
 
-def test_classes_are_the_four_2025_classes():
+def test_classes_are_the_four_original_classes():
     assert CLASSES == ("glass", "metal", "paper", "plastic")
 
 

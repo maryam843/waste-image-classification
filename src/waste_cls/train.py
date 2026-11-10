@@ -1,6 +1,6 @@
 """Training loop. Model selection, early stopping and the LR schedule use the VALIDATION set only.
 
-train_model() does not accept a test loader on purpose: in 2025 the test set was used for
+train_model() does not accept a test loader on purpose: in the original version the test set was used for
 early stopping, LR scheduling and checkpoint choice, which made the reported score optimistic.
 """
 

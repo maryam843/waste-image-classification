@@ -1,6 +1,6 @@
 """The three models compared in this project.
 
-- DNN: the 2025 coursework network, unchanged (flatten -> [512, 256, 128] -> 4).
+- DNN: the original DNN, unchanged (flatten -> [512, 256, 128] -> 4).
 - SmallCNN: 4 conv blocks with BatchNorm, trained from scratch.
 - ResNet18Frozen: ImageNet ResNet-18 with a frozen backbone and a new linear head.
 
@@ -16,7 +16,7 @@ N_CLASSES = 4
 
 
 class DNN(nn.Module):
-    """Fully connected network exactly as in the 2025 notebook (cell 6)."""
+    """Fully connected network exactly as in the original version."""
 
     def __init__(self, input_size: int, num_classes: int = N_CLASSES,
                  hidden_sizes: tuple[int, ...] = (512, 256, 128), dropout: float = 0.5):

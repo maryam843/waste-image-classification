@@ -219,7 +219,7 @@ def match_records_to_split(records: list[Record], rows: list[dict]) -> dict[str,
 
 
 def load_images(paths: list[str], size: int) -> torch.Tensor:
-    """Load images as a uint8 tensor [N, 3, size, size] (bilinear resize, same as the 2025 notebook)."""
+    """Load images as a uint8 tensor [N, 3, size, size] (bilinear resize, same as the original version)."""
     arr = np.empty((len(paths), size, size, 3), dtype=np.uint8)
     for i, p in enumerate(paths):
         with Image.open(p) as im:

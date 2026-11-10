@@ -1,6 +1,6 @@
 """Experiment runner: one fresh model per (architecture, seed), test evaluated exactly once per model.
 
-In 2025 the "60-epoch experiment" silently continued from an already trained model because
+In the original version the "60-epoch experiment" silently continued from an already trained model because
 cells ran out of order. Here every run builds its model through the factory, so that cannot happen.
 """
 

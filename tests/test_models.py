@@ -12,9 +12,9 @@ from waste_cls.models import (
 )
 
 
-def test_dnn_matches_2025_architecture_and_parameter_count():
+def test_dnn_matches_original_architecture_and_parameter_count():
     m = build_model("dnn", image_size=224)
-    assert count_parameters(m) == 77_237_380  # same as the 2025 notebook's network
+    assert count_parameters(m) == 77_237_380  # same as the original version's network
     linears = [layer for layer in m.network if isinstance(layer, torch.nn.Linear)]
     assert [(lin.in_features, lin.out_features) for lin in linears] == [
         (150528, 512), (512, 256), (256, 128), (128, 4)]

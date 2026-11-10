@@ -1,4 +1,4 @@
-"""Regression tests for the problems found in the 2025 notebook."""
+"""Regression tests for the problems found in the original version."""
 
 from waste_cls.experiment import run_all, run_single, select_demo_model
 from waste_cls.models import build_model
@@ -58,7 +58,7 @@ def test_same_seed_gives_same_start_weights_so_runs_do_not_continue_each_other(t
 
 
 def test_reported_architecture_is_the_trained_one(tiny_cfg, tiny_data):
-    """2025 wrote [1024,512,256,128] in the conclusion but trained [512,256,128]."""
+    """The original write-up named [1024,512,256,128] but trained [512,256,128]."""
     record, model = run_single("dnn", 0, tiny_data, tiny_cfg, log=None)
     widths = [m.out_features for m in model.network if hasattr(m, "out_features")]
     assert widths[:-1] == list(tiny_cfg.dnn_hidden) == [512, 256, 128]

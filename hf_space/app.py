@@ -1,6 +1,6 @@
 """Gradio demo: upload a photo of one waste item -> top-3 classes + Grad-CAM overlay.
 
-Course project on the TrashNet dataset (studio-style photos, 4 classes).
+Trained on the TrashNet dataset (studio-style photos, 4 classes).
 Not for real sorting decisions.
 """
 
@@ -36,8 +36,8 @@ MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 SIGNATURES = {"JPEG": b"\xff\xd8\xff", "PNG": b"\x89PNG\r\n\x1a\n"}
 MEAN = (0.485, 0.456, 0.406)
 STD = (0.229, 0.224, 0.225)
-NOTE = ("Course project (DSAI4101, rebuilt in 2026) trained on TrashNet studio photos of glass, metal, "
-        "paper and plastic. It is not reliable on real bins or sorting lines. "
+NOTE = ("Trained on TrashNet studio photos of glass, metal, paper and plastic. "
+        "It is not reliable on real bins or sorting lines. "
         "Not for real sorting decisions.")
 
 
@@ -94,7 +94,7 @@ def build_demo(model, blob):
         inputs=gr.Image(type="filepath", image_mode=None, sources=["upload"], label="Photo of one item (JPEG or PNG)"),
         outputs=[gr.Label(num_top_classes=3, label="Top-3 classes"),
                  gr.Image(label="Grad-CAM (red = regions that drove the prediction)")],
-        title="Waste material classifier (course project)",
+        title="Waste material classifier",
         description=NOTE,
         flagging_mode="never",
     )

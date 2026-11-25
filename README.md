@@ -1,87 +1,71 @@
-# Waste image classification: why a CNN beats a plain DNN on images
+# Waste image classification
+[![CI](https://github.com/maryam843/waste-image-classification/actions/workflows/ci.yml/badge.svg)](https://github.com/maryam843/waste-image-classification/actions/workflows/ci.yml)
 
-A fair, re-runnable comparison of my 2025 fully connected network against a small CNN and a frozen ResNet-18
-on public TrashNet photos of glass, metal, paper and plastic, with Grad-CAM explanations and a small demo app.
+A PyTorch comparison of my original fully connected network, a small CNN and a frozen ResNet-18 for sorting photos of
+glass, metal, paper and plastic, using a leakage-safe protocol and Grad-CAM heat maps.
 
-Originally built for DSAI4101 Deep Learning, UDST, Fall 2025. Rebuilt on public data in 2026.
-My full transfer-learning work is in my [OryxEye](https://github.com/maryam843/OryxEye) project.
+## Key results
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/maryam843/waste-image-classification/blob/main/notebooks/waste_classification_2026.ipynb)
+- **Frozen ResNet-18:** 0.843 +/- 0.007 test accuracy (macro F1 0.841 +/- 0.007) on 298 TrashNet test photos, against
+  0.510 for logistic regression on pixels and 0.299 for always guessing the majority class.
+- **SmallCNN vs fully connected network:** the SmallCNN (389,924 parameters) scores 0.780 +/- 0.005, the fully connected
+  network (77,237,380 parameters) scores 0.664 +/- 0.012. The CNN wins on every seed, and an exact McNemar test on the
+  same test photos finds the gap significant on all 3 seeds.
+- **ResNet-18 vs SmallCNN is only borderline:** the same McNemar test finds that gap significant on 2 of 3 seeds, not on
+  the third, so the ResNet-18 lead is not a firm result.
+- All numbers: mean +/- sd over 3 seeds, one full run on a T4 GPU in Google Colab, saved in `results/results.json`.
 
-## In plain English
+## Demo and visual
 
-- **What it is:** a program that looks at a photo of one piece of rubbish and says whether it is glass, metal, paper or plastic.
-- **Who it helps:** recycling sorters and "smart bin" projects, where sorting by hand is slow and mistakes contaminate whole batches.
-- **How it works:** photo -> resized to 224x224 -> a neural network -> the most likely material, plus a heat map (Grad-CAM) of the part of the photo that decided it.
-- **2025 vs 2026:** in 2025 I trained one fully connected network for a course assignment. In 2026 I rebuilt it on public data, fixed how it was evaluated, and compared it with a CNN and a pretrained ResNet-18.
-- **Honest result:** on the same TrashNet test set, the frozen ResNet-18 scored highest, then the small CNN, then my 2025 DNN, and all three beat the two baselines (numbers below, from `results/results.json`). These are clean studio photos, not real bins. The 2025 and 2026 scores use different data and cannot be compared directly.
-- **Why it matters here:** Qatar's national waste strategy aims to raise recycling, and automated sorting is part of that. This project shows the core skills: building, evaluating and explaining an image model honestly.
+**Live demo:** [Hugging Face Space](https://huggingface.co/spaces/Maryamdafc/waste-image-classification) (Gradio).
+Upload a JPEG or PNG photo of one item and get the top 3 classes with a Grad-CAM heat map. The demo model is the
+ResNet-18 from seed 0, picked by the highest validation macro F1 (recorded under `demo_model` in `results/results.json`).
 
-## The problem
+![Grad-CAM heat maps from the SmallCNN and the frozen ResNet-18 on six TrashNet test photos](figures/gradcam.png)
 
-Mixed recyclables have to be separated by material before they can be recycled. Most of this is still done by
-people on sorting lines. In Qatar, recycling targets under the national waste strategy and the Qatar National Vision 2030
-environmental pillar make automated sorting and smart bins a practical use case for computer vision.
+Red areas raised the predicted class score. The ResNet-18 tends to look at the object; the SmallCNN sometimes uses edges.
 
-This repo does not build a sorting system. It answers a narrower question that I got wrong in 2025: for small image
-datasets, how much does the model type matter, when everything is evaluated fairly?
-
-## 2025 vs 2026
-
-| | 2025 coursework | 2026 rebuild |
-|---|---|---|
-| Data | Course `data.zip`, 1,540 train / 100 test images (no longer available) | Public TrashNet, 1,981 images after cleaning, 70/15/15 split |
-| Models | Fully connected DNN [512,256,128] | Same DNN, plus SmallCNN and frozen ResNet-18, plus 2 baselines |
-| Model selection | On the test set | On a validation set; test used once per trained model |
-| Seeds | One run | 3 seeds per model, mean +/- sd, 95 % Wilson intervals |
-| Reproducible | No (cells ran out of order, data missing) | Same split and same code path on every run; CPU first-epoch loss is reproducible (tested). GPU runs can differ slightly, so I report mean +/- sd over seeds |
-| Explainability | Misclassified images | Grad-CAM for SmallCNN and ResNet-18 |
-
-The original notebook is kept as submitted (personal data removed) in
-[`notebooks/original_2025_dnn.ipynb`](notebooks/original_2025_dnn.ipynb). Its reported test F1 was 0.6988 on 100 images,
-but that number was selected on the same test set, so it is optimistic.
+**Tools:** Python, PyTorch, torchvision, scikit-learn, NumPy, Pillow, Matplotlib, Gradio, Hugging Face Spaces, Google Colab, pytest, GitHub Actions
 
 ## Data
 
-- **Source:** [TrashNet](https://github.com/garythung/trashnet) by Gary Thung and Mindy Yang (Stanford CS 229, 2016),
-  MIT licence. The images are downloaded by the code from the TrashNet repository at a pinned commit and checked against a
-  SHA-256. They are not redistributed here.
-- **Classes used:** glass (501), metal (410), paper (594), plastic (482). Cardboard and trash are not used, to match the 2025 task.
-- **Cleaning:** every image is hashed. Three files appear twice with different labels (for example the same photo in both
-  `glass/` and `plastic/`), so those 6 files are dropped. That leaves 1,981 images.
-- **Split:** stratified 70/15/15 on unique image hashes with seed 42, so exact duplicates can never be split across
-  train and test: 1,386 train, 297 validation, 298 test. The split is saved as a CSV of hashes (no images) in
-  [`data_split/trashnet_split.csv`](data_split/trashnet_split.csv).
-- **Not comparable with 2025:** the course data is no longer available, so 2025 and 2026 scores are not directly comparable.
-- **Images in figures:** some generated figures (Grad-CAM and the misclassified-image gallery) show a few TrashNet test
-  photos. They are used under TrashNet's MIT licence with the citation its README asks for: Gary Thung and Mindy Yang,
-  "Classification of Trash for Recyclability Status", Stanford CS 229, 2016, https://github.com/garythung/trashnet.
-  The dataset itself is not in this repo.
+- **Source:** [TrashNet](https://github.com/garythung/trashnet) by Gary Thung and Mindy Yang, MIT licence.
+- **Size:** the `dataset-resized.zip` file (42.8 MB, 512x384 JPEG photos). Of its 6 classes, 4 are used: glass, metal,
+  paper and plastic (1,987 photos). Cardboard and trash are left out.
+- **Cleaning:** every photo is hashed. Three photos appear twice under different labels (for example the same file in
+  `glass/` and `plastic/`), so all 6 copies are dropped, leaving 1,981 photos.
+- **Split:** stratified 70/15/15 on unique image hashes with seed 42: 1,386 train, 297 validation, 298 test. The split is
+  committed as a CSV of hashes and labels only, no images: [`data_split/trashnet_split.csv`](data_split/trashnet_split.csv).
+- **Not in this repo:** the images belong to the TrashNet authors and are not redistributed here (figures show a few test
+  photos with the citation below).
+- **How to get it:** `python -m waste_cls.cli prepare-data` downloads the zip from the TrashNet repository at a pinned
+  commit, checks its SHA-256 and fails if the rebuilt split differs from the committed CSV.
 
-## Method
+## Approach
 
-All models see the same 224x224 images, normalised with ImageNet statistics, and are trained with Adam (learning rate 1e-3),
-cross-entropy, ReduceLROnPlateau and early stopping. The learning-rate schedule, early stopping and the choice of checkpoint
-all use validation macro F1. Each model is trained with 3 seeds; each trained model is scored on the test set exactly once.
+1. **Fixed data:** pinned TrashNet download, hash-based de-duplication and a committed split, the same on every run.
+2. **Same input for every network:** photos resized to 224x224 and normalised with ImageNet statistics.
+3. **Baselines first:** majority class, and logistic regression on 64x64 pixels with C chosen on validation, to see what
+   a network has to beat.
+4. **Three networks:** my original fully connected network [512,256,128] with BatchNorm and Dropout, unchanged; a
+   SmallCNN with 4 conv blocks trained from scratch with light augmentation; and an ImageNet ResNet-18 with a frozen
+   backbone and a new linear head (2,052 trainable parameters).
+5. **Validation-only choices:** Adam (learning rate 1e-3), ReduceLROnPlateau, early stopping and the saved checkpoint
+   all use validation macro F1. `train_model()` does not accept a test loader, and tests check this.
+6. **Scoring:** 3 seeds per network, each trained model scored on the test set once; 95 % Wilson intervals and
+   exact McNemar tests (`scripts/mcnemar.py`) on the shared test photos.
+7. **Explanations:** Grad-CAM for the SmallCNN and the ResNet-18, plus galleries of misclassified test photos.
 
-| Model | What it is | Why it is here |
-|---|---|---|
-| Majority class | Always predicts the most common training class | Floor |
-| Logistic regression | Linear model on 64x64 pixels, C chosen on validation | Is a neural network needed at all? |
-| DNN [512,256,128] | My 2025 network, unchanged: flatten, 3 hidden layers with BatchNorm and Dropout 0.5 (77,237,380 parameters) | The 2025 approach, trained properly |
-| SmallCNN | 4 conv blocks with BatchNorm, global average pooling, trained from scratch with light augmentation | Does using image structure help? |
-| ResNet-18 (frozen) | ImageNet weights, only a new linear head is trained | Reference for transfer learning |
+Design choices and the reason for each are in [`docs/DECISIONS.md`](docs/DECISIONS.md).
 
-Design choices and the reasons for each are in [`docs/DECISIONS.md`](docs/DECISIONS.md).
-
-## Results vs baselines
+## Results
 
 <!-- RESULTS:START -->
 | Model | Test accuracy | Test macro F1 | 95 % Wilson CI for accuracy | Parameters (trainable) | Train time per run |
 |---|---|---|---|---|---|
 | Majority class | 0.299 | 0.115 | 0.250 to 0.353 | n/a | n/a |
 | Logistic regression, 64x64 pixels | 0.510 | 0.493 | 0.454 to 0.566 | n/a | n/a |
-| DNN [512,256,128] (2025 network) | 0.664 +/- 0.012 | 0.650 +/- 0.012 | 0.595 to 0.725 (widest over seeds) | 77,237,380 (77,237,380) | 81 s |
+| DNN [512,256,128] (original network) | 0.664 +/- 0.012 | 0.650 +/- 0.012 | 0.595 to 0.725 (widest over seeds) | 77,237,380 (77,237,380) | 81 s |
 | SmallCNN (from scratch) | 0.780 +/- 0.005 | 0.775 +/- 0.005 | 0.724 to 0.828 (widest over seeds) | 389,924 (389,924) | 243 s |
 | ResNet-18, frozen backbone (reference) | 0.843 +/- 0.007 | 0.841 +/- 0.007 | 0.789 to 0.885 (widest over seeds) | 11,178,564 (2,052) | 139 s |
 
@@ -90,78 +74,26 @@ Test set: 298 images. Networks: mean +/- sd over seeds 0, 1, 2. GPU: Tesla T4. S
 Run environment (recorded in results.json): Python 3.13.15, torch 2.11.0+cu128, torchvision 0.26.0+cu128.
 <!-- RESULTS:END -->
 
-All numbers come from one full run of `notebooks/waste_classification_2026.ipynb` on a Colab T4 GPU. The executed copy,
-with text outputs kept and Colab metadata removed, is
-[`notebooks/waste_classification_2026_executed.ipynb`](notebooks/waste_classification_2026_executed.ipynb).
-Colab used its own preinstalled Python and PyTorch (versions above), not the pinned versions that CI tests on.
-
-How I read it:
-
-- The order was the same on every seed: my 2025 DNN lowest, then the SmallCNN, then the frozen ResNet-18.
-  The SmallCNN has about 200 times fewer parameters than the DNN and still scored higher.
-- All three seeds use the same 298 test images, so the seeds show training noise, not test-set noise. The per-seed Wilson
-  intervals of neighbouring models touch or overlap slightly, so the gaps are clear but not huge.
-- The SmallCNN's best validation epoch was near the 40-epoch limit for all seeds (see the learning curves), so it was
-  probably still improving. A longer run might score higher; I report what was run.
-- The ResNet-18 trains only 2,052 parameters (the new head). Its lead shows how much ImageNet features help on a small
-  dataset; it is a reference, not my own architecture.
-
-![Test accuracy and macro F1 per model](figures/results_bar.png)
-
-Other figures in [`figures/`](figures/): learning curves (`learning_curves.png`), confusion matrices
-(`confusion_matrices.png`), and misclassified test images sampled across all four classes for each model (`errors_*.png`).
-
-**Grad-CAM:** where the SmallCNN and the ResNet-18 looked on six test photos (red raised the predicted class score).
-
-![Grad-CAM on six test images](figures/gradcam.png)
-
-**Live demo:** [Hugging Face Space](https://huggingface.co/spaces/Maryamdafc/waste-image-classification) (Gradio on free
-ZeroGPU). The demo model is the ResNet-18 from seed 0, picked by the highest validation macro F1 among the Grad-CAM capable
-models (recorded under `demo_model` in `results.json`). Setup steps are in [`hf_space/INSTRUCTIONS.md`](hf_space/INSTRUCTIONS.md).
-It is a course project trained on studio photos, not for real sorting decisions.
-
-**Demo video:** TODO, I will record a short clip of the app myself.
-
-## What went wrong in 2025 and how I fixed it
-
-1. **I picked the model using the test set.** Early stopping, the learning-rate schedule, the saved checkpoint and my
-   hyperparameter search all looked at the 100 test images. Fix: model selection uses only the validation set, and a test
-   enforces it (`train_model()` does not accept a test loader, and a test checks the test set is used once per model).
-2. **My notebook cells ran out of order.** The "60-epoch experiment" actually continued training the already trained model.
-   Fix: every run builds a fresh model from a factory, and CI runs the new notebook top to bottom.
-3. **My write-up named the wrong final model.** I wrote [1024,512,256,128], but the reported model was [512,256,128].
-   Fix: the architecture and parameter count in `results.json` are read from the trained model itself.
-4. **A fully connected network ignores image layout.** Flattening a 224x224 photo gives 150,528 inputs, and 99.8 % of the
-   77 M parameters sit in the first layer. Fix: compare it against a CNN and a pretrained ResNet-18 under the same rules.
-5. **The course data is gone.** Fix: public TrashNet with a pinned hash and a committed split, so anyone can rebuild the
-   exact same sets.
+The table is generated from `results/results.json` and checked in CI by `scripts/check_readme_claims.py`. The DNN row
+is my original fully connected network. 99.8 % of its parameters sit in the first layer, because flattening a 224x224
+photo gives 150,528 inputs. The executed notebook is
+[`notebooks/waste_classification_executed.ipynb`](notebooks/waste_classification_executed.ipynb). More figures are in
+[`figures/`](figures/): learning curves, confusion matrices, a results bar chart and misclassified photos per model.
 
 ## Limitations
 
-- TrashNet photos are single, clean objects on a white background under good light. They are not photos from real bins or
-  sorting lines, so these scores say nothing about real-world sorting.
-- Only 4 classes; cardboard, trash, food waste and mixed items are not covered.
-- About 300 test images: differences of a few images are within noise, which is why I report 3 seeds and Wilson intervals.
-- The ResNet-18 backbone is frozen; I did not fine-tune it here (that is in OryxEye).
-- The demo is a course project. It is not for real sorting decisions.
-
-## What I learned
-
-- A good-looking number means little if the test set helped choose the model. I now keep a validation set for every decision.
-- Notebooks hide state. Moving the logic into `src/` means every run starts from a fresh model, and a test checks it.
-- For images, architecture matters more than tuning: my 2025 hyperparameter search could not fix a model that ignores pixel layout.
-- Reporting mean and spread over seeds, plus a confidence interval, stops me from reading noise as progress.
-- Checking data is part of the model: hashing TrashNet found duplicates with conflicting labels that I would have missed.
-- Writing down the reason for each choice (`docs/DECISIONS.md`) made it much easier to explain my work.
+- Trained on TrashNet studio photos (single item, plain background); not reliable on real bins or cluttered photos.
+  Only 4 materials are covered.
+- 298 test photos leave a few points of uncertainty, and the ResNet-18 vs SmallCNN gap is borderline. De-duplication
+  uses exact hashes only, so about 7 test photos have a near-identical twin in train or validation.
+- The comparison is not fully matched: augmentation is on for the two CNNs and off for the fully connected network, and
+  the SmallCNN's best epoch was close to the 40-epoch cap on every seed, so it was probably still improving.
+- The ResNet-18 backbone is frozen (only the head is trained); fine-tuning is not tested. The reported run used Colab's
+  Python and PyTorch versions, not the pinned versions CI tests on, and GPU runs can differ slightly between repeats.
 
 ## How to run
 
-**On Colab (full run, GPU):** open the notebook with the badge above, choose Runtime > Change runtime type > T4 GPU,
-then Runtime > Run all. While this repo is private, add a read-only GitHub token as a Colab secret named `GH_TOKEN` so the
-notebook can clone the code (or upload the repo yourself). The notebook writes `results/results.json`, `figures/`, and the
-demo model (not committed), and downloads them as zip files.
-
-**Locally on CPU (smoke run on tiny synthetic images, about a minute):**
+Local setup, tests and a smoke run on tiny synthetic images (CPU; the smoke run itself takes about 10 s):
 
 <!-- readme-commands -->
 ```bash
@@ -169,33 +101,51 @@ python -m venv .venv
 source .venv/bin/activate            # Windows: .venv\Scripts\activate
 pip install torch==2.14.0 torchvision==0.29.0 --index-url https://download.pytorch.org/whl/cpu   # Linux, CPU only
 pip install -r requirements-dev.txt
-pip install -e .
+pip install -e . --no-deps
 pytest
 python -m waste_cls.cli run --config smoke --out runs/smoke
 python scripts/pii_scan.py
 python scripts/check_readme_claims.py
 ```
 
-`python -m waste_cls.cli prepare-data` downloads TrashNet (about 43 MB) and checks that the rebuilt split matches the
-committed CSV. `python -m waste_cls.cli run --config full --out results --figures figures --export exports/demo_model.pt`
-is the full run (use a GPU). `python -m waste_cls.cli predict --model exports/demo_model.pt --image photo.jpg --cam cam.png`
-gives the top-3 classes and a Grad-CAM image for one photo.
+Tests and lint as CI runs them:
 
-## Use of AI tools
+```bash
+ruff check .
+python -m pytest --cov --cov-report=term-missing --cov-fail-under=85
+```
 
-In 2025 I used AI help for the hyperparameter tuning loops and for setting up the environment, and I said so in the
-original notebook. For the 2026 rebuild I also used an AI coding assistant to help restructure the code into `src/`,
-write tests and CI, and draft documentation. I reviewed the code and the design choices, and every number in this README
-has to come from `results/results.json`, which a script checks.
+Full run (download TrashNet, train all models, write results, figures and the demo model; use a GPU):
 
-## Credits
+```bash
+python -m waste_cls.cli prepare-data
+python -m waste_cls.cli run --config full --out results --figures figures --export exports/demo_model.pt
+python -m waste_cls.cli predict --model exports/demo_model.pt --image photo.jpg --cam cam.png
+```
 
-- TrashNet dataset: Gary Thung and Mindy Yang, "Classification of Trash for Recyclability Status", Stanford CS 229, 2016.
-  [github.com/garythung/trashnet](https://github.com/garythung/trashnet), MIT licence.
-- ResNet-18: He et al., 2016, ImageNet weights from torchvision.
-- Grad-CAM: Selvaraju et al., 2017.
-- Course: DSAI4101 Deep Learning, University of Doha for Science and Technology.
+`predict` prints the top 3 classes for one photo and saves a Grad-CAM image. The same full run is a notebook:
+[open `notebooks/waste_classification.ipynb` in Google Colab](https://colab.research.google.com/github/maryam843/waste-image-classification/blob/main/notebooks/waste_classification.ipynb), choose a T4 GPU runtime and run all cells.
 
-## Licence
+## Repo structure
 
-My code is under the MIT licence (see [`LICENSE`](LICENSE)). TrashNet images are not included; they keep their own MIT licence.
+```text
+src/waste_cls/       package: data, models, training, evaluation, Grad-CAM, plots, CLI
+notebooks/           notebook (runs on Google Colab) and its executed copy
+results/             results.json from the full run, plus its environment notes
+figures/             learning curves, confusion matrices, Grad-CAM, error galleries, results bar chart
+data_split/          committed train/validation/test split (hashes only)
+hf_space/            Gradio app and setup notes for the Hugging Face Space
+scripts/             README check, McNemar tests, personal data scan, Space build
+tests/               pytest suite
+docs/DECISIONS.md    design choices and reasons
+.github/workflows/   CI (Ubuntu and Windows)
+```
+
+## Licence and credits
+
+- Code: MIT licence, see [`LICENSE`](LICENSE).
+- TrashNet dataset: Gary Thung and Mindy Yang, "Classification of Trash for Recyclability Status", 2016,
+  [github.com/garythung/trashnet](https://github.com/garythung/trashnet), MIT licence. The images are not included;
+  they keep their own licence.
+- ResNet-18: He et al., "Deep Residual Learning for Image Recognition", 2016; ImageNet weights from torchvision.
+- Grad-CAM: Selvaraju et al., "Grad-CAM: Visual Explanations from Deep Networks via Gradient-based Localization", 2017.

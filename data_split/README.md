@@ -1,6 +1,6 @@
 # Split file
 
-`trashnet_split.csv` holds the train/val/test assignment for TrashNet glass, metal, paper and plastic.
+`trashnet_split.csv` holds the train/val/test split for TrashNet glass, metal, paper and plastic.
 It contains no images: one row per file with its SHA-256, label, split and name inside the TrashNet zip.
 
 - Built by `waste_cls.data.make_split` (stratified 70/15/15 on unique hashes, seed 42) from the TrashNet zip at commit

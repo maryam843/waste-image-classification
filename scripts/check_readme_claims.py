@@ -4,9 +4,9 @@
   While that block says TODO, the number check is SKIPPED (exit 0) with a clear message.
   Otherwise the block must equal the table rendered from results.json (use --render to print it).
 - Outside the block, any score-like number (0.xx or NN %) must appear in the rendered table,
-  or be on a line that is explicitly about the 2025 coursework.
+  or be on a line that is explicitly about the earlier, test-selected version (marked by its year).
 - Forbidden claims are always checked (real-time, deployed for sorting, ...), and a line may not
-  present the 2025 score and a 2026 score as an improvement.
+  present the earlier score and a new score as an improvement.
 - results.json from a smoke run is rejected: only the full Colab run can be reported.
 
 Usage:
@@ -30,7 +30,7 @@ FORBIDDEN = [
 # first layer (150,528*512+512 of 77,237,380 = 99.8 %, checked in tests/test_models.py).
 STATIC_FACTS = {"95 %", "99.8 %"}
 SCORE = re.compile(r"(?<![\w.])(?:0\.\d{2,4}|\d{1,3}(?:\.\d+)?\s?%)(?![\w.])")
-NAMES = {"dnn": "DNN [512,256,128] (2025 network)", "smallcnn": "SmallCNN (from scratch)",
+NAMES = {"dnn": "DNN [512,256,128] (original network)", "smallcnn": "SmallCNN (from scratch)",
          "resnet18": "ResNet-18, frozen backbone (reference)"}
 
 
@@ -93,7 +93,7 @@ def check(readme_text: str, results: dict | None) -> tuple[int, list[str]]:
                 msgs.append(f"line {i}: forbidden claim /{pat}/: {line.strip()[:100]}")
         if "2025" in line and re.search(r"improv", line, re.I) and SCORE.search(line):
             errors += 1
-            msgs.append(f"line {i}: presents a 2025 vs 2026 score as an improvement")
+            msgs.append(f"line {i}: presents an earlier score and a new score as an improvement")
 
     block = extract_block(readme_text)
     if block is None:

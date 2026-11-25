@@ -2,7 +2,7 @@
 
 The model file is never committed to GitHub. You create it on Colab and upload it yourself.
 
-Live Space: https://huggingface.co/spaces/Maryamdafc/waste-image-classification (private for now).
+Live Space: https://huggingface.co/spaces/Maryamdafc/waste-image-classification.
 
 ## Things the Space needs (as of October 2026)
 

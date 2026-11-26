@@ -75,7 +75,7 @@ One reason per choice. If a choice changes, the reason changes here too.
   which were all glass.
 - **Demo model = single run with the best validation macro F1 among Grad-CAM capable models.** Chosen on validation, never
   on test, and it must support Grad-CAM for the demo.
-- **Gradio on Hugging Face Spaces, ZeroGPU (free tier).** Free, no server to maintain, and recruiters can click it. I upload it by
+- **Gradio on Hugging Face Spaces, ZeroGPU (free tier).** Free, no server to maintain, and anyone can try it. I upload it by
   hand so no token ever touches this repo.
 - **Model files saved as plain tensors and loaded with `weights_only=True`.** Loading never unpickles arbitrary code.
 

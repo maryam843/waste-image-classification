@@ -1,4 +1,4 @@
-"""End-to-end run used by the CLI and the 2026 notebook: data -> baselines -> models -> results -> figures."""
+"""End-to-end run used by the CLI and the notebook: data -> baselines -> models -> results -> figures."""
 
 from __future__ import annotations
 
